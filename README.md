@@ -24,10 +24,20 @@ One dot per running profile: **filled** is in front, **ring** is in the backgrou
 
 Click a profile in the menu to start it or bring it forward; click it again to hide it. Manage profiles via *Profile verwalten…* (the UI is in German).
 
+## Claude Code CLI
+
+Assign folders to a profile (*⋯ → Claude-Code-Ordner zuordnen…*) and add this to your `~/.zshrc`:
+
+```bash
+source ~/.config/claude-switcher/claude.zsh
+```
+
+Inside those folders `claude` uses its own `CLAUDE_CONFIG_DIR` (login, history, settings, skills, MCP servers); everywhere else it uses `~/.claude`. Works in interactive zsh only.
+
 ## Good to know
 
 - For a profile's first login, quit the other Claude instances and check the account in your browser.
-- Only Claude Desktop data is separated; the app does not separate `~/.claude` (Claude Code).
+- Folder assignment affects the terminal CLI only, not the desktop app's Code tab.
 
 ---
 

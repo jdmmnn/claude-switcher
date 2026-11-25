@@ -9,6 +9,13 @@ struct Profile: Codable, Identifiable, Equatable {
     var color: String
     /// nil = the normal Claude installation without --user-data-dir
     var dataDir: String?
+    /// Claude Code CLI uses this profile inside these folders. Unused for the default profile.
+    var folders: [String]?
+
+    /// Separate CLAUDE_CONFIG_DIR for the CLI; nil = the normal ~/.claude.
+    var cliConfigDir: String? {
+        dataDir.map { NSHomeDirectory() + "/.claude-code-profiles/" + ($0 as NSString).lastPathComponent }
+    }
 }
 
 let palette: [(String, Color)] = [
@@ -58,6 +65,8 @@ final class Store: ObservableObject {
     private let file = FileManager.default
         .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         .appendingPathComponent("ClaudeSwitcher/profiles.json")
+    /// Read by claude.zsh to pick the CLI profile for the current folder.
+    private let folderMap = URL(fileURLWithPath: NSHomeDirectory() + "/.config/claude-switcher/folders.tsv")
     private var timer: Timer?
 
     init() {
@@ -76,6 +85,7 @@ final class Store: ObservableObject {
             ]
             save()
         }
+        writeFolderMap()
         refresh()
         frontPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
         let center = NSWorkspace.shared.notificationCenter
@@ -95,9 +105,53 @@ final class Store: ObservableObject {
         do {
             try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
             try JSONEncoder().encode(profiles).write(to: file, options: .atomic)
+            writeFolderMap()
         } catch {
             self.error = "Profile konnten nicht gespeichert werden: \(error.localizedDescription)"
         }
+    }
+
+    private func writeFolderMap() {
+        let lines = profiles.flatMap { p -> [String] in
+            guard let config = p.cliConfigDir else { return [] }
+            let name = p.name.components(separatedBy: .controlCharacters).joined(separator: " ")
+            return (p.folders ?? []).map { "\($0)\t\(config)\t\(name)\n" }
+        }
+        do {
+            try FileManager.default.createDirectory(at: folderMap.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try lines.joined().write(to: folderMap, atomically: true, encoding: .utf8)
+        } catch {
+            self.error = "CLI-Ordner konnten nicht gespeichert werden: \(error.localizedDescription)"
+        }
+    }
+
+    /// A folder belongs to at most one profile.
+    func assign(folder: String, to id: UUID) {
+        // Store the real path, because the shell compares against its resolved working directory.
+        let path = realpath(folder, nil).map { pointer in
+            defer { free(pointer) }
+            return String(cString: pointer)
+        } ?? folder
+        guard path.rangeOfCharacter(from: .controlCharacters) == nil else {
+            error = "Ordnernamen mit Steuerzeichen werden nicht unterstützt."
+            return
+        }
+        var updated = profiles
+        for i in updated.indices {
+            updated[i].folders?.removeAll { $0 == path }
+            if updated[i].id == id { updated[i].folders = (updated[i].folders ?? []) + [path] }
+        }
+        profiles = updated
+    }
+
+    func chooseFolder(for id: UUID) {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.message = "In diesem Ordner und seinen Unterordnern nutzt Claude Code dieses Profil."
+        panel.prompt = "Zuordnen"
+        NSApp.activate(ignoringOtherApps: true)
+        if panel.runModal() == .OK, let url = panel.url { assign(folder: url.path, to: id) }
     }
 
     func refresh() {
@@ -215,6 +269,13 @@ struct ProfileRow: View {
                     if profile.dataDir == nil { Text("· Standard-Installation") }
                 }
                 .font(.caption).foregroundStyle(.secondary)
+                if profile.dataDir != nil {
+                    let folders = (profile.folders ?? []).map { ($0 as NSString).abbreviatingWithTildeInPath }
+                    Text(folders.isEmpty ? "CLI: kein Ordner zugeordnet" : "CLI: " + folders.joined(separator: ", "))
+                        .font(.caption).foregroundStyle(.secondary)
+                        .lineLimit(1).truncationMode(.middle)
+                        .help(folders.joined(separator: "\n"))
+                }
             }
             Spacer()
             Button(isRunning ? "Wechseln" : "Starten") { store.open(profile) }
@@ -223,6 +284,14 @@ struct ProfileRow: View {
                 Button("Datenordner im Finder zeigen") { store.reveal(profile) }
                 Button("Diese Instanz beenden…") { confirmQuit = true }.disabled(!isRunning)
                 if profile.dataDir != nil {
+                    Divider()
+                    Button("Claude-Code-Ordner zuordnen…") { store.chooseFolder(for: profile.id) }
+                    ForEach(profile.folders ?? [], id: \.self) { folder in
+                        Button("Zuordnung entfernen: \((folder as NSString).abbreviatingWithTildeInPath)") {
+                            profile.folders?.removeAll { $0 == folder }
+                        }
+                    }
+                    Divider()
                     Button("Aus Liste entfernen…") { confirmRemove = true }.disabled(isRunning)
                 }
             } label: {

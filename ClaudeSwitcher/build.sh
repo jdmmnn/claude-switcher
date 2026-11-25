@@ -38,3 +38,7 @@ mkdir -p "$HOME/Applications"
 rm -rf "$HOME/Applications/Claude Switcher.app"
 cp -R "$APP" "$HOME/Applications/"
 echo "Installiert: ~/Applications/Claude Switcher.app"
+
+# Shell function for the Claude Code CLI; it is only active once ~/.zshrc sources it.
+mkdir -p "$HOME/.config/claude-switcher"
+cp claude.zsh "$HOME/.config/claude-switcher/claude.zsh"

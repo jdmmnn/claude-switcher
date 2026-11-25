@@ -2,6 +2,8 @@
 
 Kleine macOS-Menüleisten-App, um mehrere Claude-Desktop-Instanzen (z. B. privat und Arbeit) getrennt nebeneinander zu betreiben.
 
+> Inoffizielles Projekt, nicht mit Anthropic verbunden und nicht von Anthropic unterstützt. „Claude“ ist eine Marke von Anthropic.
+
 Jedes Profil ist die normale Claude-App, gestartet mit einem eigenen `--user-data-dir` ([Hintergrund](https://philippstracker.com/multiple-claude-instances/)). Vorbild für die Bedienung: [claudeswitch.dev](https://claudeswitch.dev/).
 
 ## Voraussetzungen

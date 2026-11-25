@@ -1,63 +1,34 @@
+<img src="docs/icon.png" width="96" alt="">
+
 # Claude Switcher
 
-Kleine macOS-Menüleisten-App, um mehrere Claude-Desktop-Instanzen (z. B. privat und Arbeit) getrennt nebeneinander zu betreiben.
+A tiny macOS menu bar app to run several Claude Desktop accounts side by side, e.g. personal and work. Each profile gets its own [`--user-data-dir`](https://philippstracker.com/multiple-claude-instances/).
 
-> Inoffizielles Projekt, nicht mit Anthropic verbunden und nicht von Anthropic unterstützt. „Claude“ ist eine Marke von Anthropic.
+<img src="docs/window.png" width="440" alt="Profile window with three profiles, two of them running">
 
-Jedes Profil ist die normale Claude-App, gestartet mit einem eigenen `--user-data-dir` ([Hintergrund](https://philippstracker.com/multiple-claude-instances/)). Vorbild für die Bedienung: [claudeswitch.dev](https://claudeswitch.dev/).
+## Install
 
-## Voraussetzungen
-
-- macOS 15 oder neuer
-- Claude Desktop
-- Xcode Command Line Tools (`xcode-select --install`)
-
-## Bauen und installieren
+Requires macOS 15+, Claude Desktop and the Xcode Command Line Tools.
 
 ```bash
-bash ClaudeSwitcher/build.sh
+git clone https://github.com/jdmmnn/claude-switcher.git
+bash claude-switcher/ClaudeSwitcher/build.sh
+open ~/Applications/"Claude Switcher.app"
 ```
 
-Die App landet in `~/Applications/Claude Switcher.app`. Eine bereits laufende Version vorher beenden und danach neu öffnen.
+## Use
 
-## Bedienung
+<img src="docs/menubar.png" width="80" alt="Menu bar: a filled blue dot and an orange ring">
 
-Die App hat kein Dock-Symbol. In der Menüleiste steht je laufender Instanz ein Punkt in der Profilfarbe:
+One dot per running profile: **filled** is in front, **ring** is in the background.
 
-- ausgefüllt: Instanz ist vorne
-- Ring: Instanz läuft im Hintergrund oder ist ausgeblendet
-- Personen-Symbol: keine Instanz läuft
+Click a profile in the menu to start it or bring it forward; click it again to hide it. Manage profiles via *Profile verwalten…* (the UI is in German).
 
-Ein Klick auf ein Profil im Menü startet es oder holt es nach vorne. Ist es bereits vorne, wird es ausgeblendet (läuft aber weiter).
+## Good to know
 
-Über „Profile verwalten…“ lassen sich Profile anlegen, umbenennen, umfärben, beenden und aus der Liste entfernen.
+- For a profile's first login, quit the other Claude instances and check the account in your browser.
+- Only Claude Desktop data is separated; the app does not separate `~/.claude` (Claude Code).
 
-## Daten
+---
 
-| Was | Wo |
-|---|---|
-| Profilliste | `~/Library/Application Support/ClaudeSwitcher/profiles.json` |
-| Standardprofil (bestehende Installation) | `~/Library/Application Support/Claude` |
-| Weitere Profile | `~/.claude-instances/<name>` |
-
-Beim Entfernen eines Profils bleibt sein Datenordner erhalten.
-
-## Einschränkungen
-
-- Beim ersten Login eines Profils die anderen Instanzen beenden, sonst kann der Login-Link im falschen Fenster landen.
-- Getrennt wird nur der Datenordner von Claude Desktop. `~/.claude` (Claude Code: Einstellungen, Skills, Memory) wird von der App nicht pro Profil getrennt.
-- Alle Instanzen haben im Dock dasselbe Claude-Icon.
-- Kein automatischer Start bei der Anmeldung; bei Bedarf unter Systemeinstellungen → Allgemein → Anmeldeobjekte hinzufügen.
-
-## Dateien
-
-| Datei | Inhalt |
-|---|---|
-| `ClaudeSwitcher/main.swift` | App und Oberfläche |
-| `ClaudeSwitcher/badges.swift` | Punkte in der Menüleiste |
-| `ClaudeSwitcher/icon.swift` | zeichnet das App-Icon |
-| `ClaudeSwitcher/build.sh` | bauen, signieren (ad hoc), installieren |
-
-## Lizenz
-
-[MIT](LICENSE)
+[MIT](LICENSE). Unofficial project, not affiliated with or endorsed by Anthropic. "Claude" is a trademark of Anthropic.

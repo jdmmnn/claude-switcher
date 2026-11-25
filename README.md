@@ -55,3 +55,7 @@ Beim Entfernen eines Profils bleibt sein Datenordner erhalten.
 | `ClaudeSwitcher/badges.swift` | Punkte in der Menüleiste |
 | `ClaudeSwitcher/icon.swift` | zeichnet das App-Icon |
 | `ClaudeSwitcher/build.sh` | bauen, signieren (ad hoc), installieren |
+
+## Lizenz
+
+[MIT](LICENSE)
